@@ -122,7 +122,6 @@ contents.each do |row|
   days << date
   
 
-  # puts row[:regdate]
   # puts "#{name} #{zipcode} #{legislators}"
   # puts clean_phone_numbers(row[:homephone])
   save_thankyou_letter(id, personal_letter)
