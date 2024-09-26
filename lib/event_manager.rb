@@ -9,13 +9,11 @@ end
 def clean_phone_numbers(phone_number)
   digits_only = []
   phone_number.each_char do |ch|
-    if '0'.ord <= ch.ord && ch.ord <= '9'.ord
-      digits_only << ch
-    end
+    digits_only << ch if '0'.ord <= ch.ord && ch.ord <= '9'.ord
   end
   length = digits_only.length
   if length == 10 || (length == 11 && digits_only[0] == '1')
-    digits_only.join()[-10..-1]
+    digits_only.join[-10..-1]
   else
     'bad'
   end
@@ -47,6 +45,30 @@ def save_thankyou_letter(id, personal_letter)
     file.puts personal_letter
   end
 end
+
+def peak_hours(hours)
+  hours_frequency = {}
+
+  hours.each do |h|
+    if hours_frequency.include?(h)
+      hours_frequency[h] += 1 
+    else
+      hours_frequency[h] = 1
+    end
+  end
+
+  best_hours = {}
+  hours_frequency.each do |key, value|
+    if best_hours.include?(value)
+      best_hours[value] << key
+    else
+      best_hours[value] = [key]
+    end
+  end
+  best_hours = best_hours.to_a.sort {|a, b| b[0] <=> a[0]}[0][1]
+  best_hours.join(', ')
+end
+
 puts 'EventManager initialized.'
 
 template_file = File.read('form_letter.erb')
@@ -57,6 +79,7 @@ contents = CSV.open(
   header_converters: :symbol
 )
 
+hours = []
 contents.each do |row|
   id = row[0]
   name = row[:first_name]
@@ -64,7 +87,15 @@ contents.each do |row|
   zipcode = clean_zipcode(row[:zipcode])
   legislators = legislators_by_zipcode(zipcode)
   personal_letter = erb_template.result(binding)
+
+  h = row[:regdate].split[1].split(':')[0]
+  hours << h
+
+  # puts row[:regdate]
   # puts "#{name} #{zipcode} #{legislators}"
-  puts clean_phone_numbers(row[:homephone])
+  # puts clean_phone_numbers(row[:homephone])
   save_thankyou_letter(id, personal_letter)
 end
+
+print "The Peak hours are: "
+puts peak_hours(hours)
