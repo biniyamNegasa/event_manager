@@ -69,6 +69,29 @@ def peak_hours(hours)
   best_hours.join(', ')
 end
 
+def peak_days(many_days)
+  days = %w[sunday monday tuesday wednesday thursday friday saturday]
+
+  register_days = {}
+  many_days.each do |date|  
+    if register_days.include?(date.wday)
+      register_days[date.wday] += 1
+    else
+      register_days[date.wday] = 1
+    end
+  end
+  peak_register_days = {}
+  register_days.each do |key, value|
+    if peak_register_days.include?(value)
+      peak_register_days[value] << key
+    else
+      peak_register_days[value] = [key]
+    end
+  end
+  peak_register_days = peak_register_days.to_a.sort {|a, b| b[0] <=> a[0]}[0][1]
+  peak_register_days.map{|number| days[number.to_i]}.join(', ')
+end
+
 puts 'EventManager initialized.'
 
 template_file = File.read('form_letter.erb')
@@ -80,6 +103,7 @@ contents = CSV.open(
 )
 
 hours = []
+days = []
 contents.each do |row|
   id = row[0]
   name = row[:first_name]
@@ -91,11 +115,21 @@ contents.each do |row|
   h = row[:regdate].split[1].split(':')[0]
   hours << h
 
+  current_date = row[:regdate].split[0].split('/')
+  current_date[-1] = '20' + current_date[-1]
+  current_date = current_date.map(&:to_i)
+  date = Date.new(current_date[2], current_date[0], current_date[1])
+  days << date
+  
+
   # puts row[:regdate]
   # puts "#{name} #{zipcode} #{legislators}"
   # puts clean_phone_numbers(row[:homephone])
   save_thankyou_letter(id, personal_letter)
 end
 
+
+print "The Peak registeration days are: "
+puts peak_days(days)
 print "The Peak hours are: "
 puts peak_hours(hours)
